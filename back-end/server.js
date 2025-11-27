@@ -3,6 +3,9 @@
 import express from "express"
 import cors from "cors"
 import dotenv from 'dotenv';
+import connectionDB from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js"
 dotenv.config()
 
 
@@ -21,13 +24,19 @@ app.use(
 
 app.use(express.json())
 
+
+
+// DB-Connect
+connectionDB()
+
+
+
 // Routes
 
-
-// app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/user", userRoutes)
 // app.use("/api/v1/auth", reportRoutes)
 // app.use("/api/v1/auth", taskRoutes)
-// app.use("/api/v1/auth", userRoutes)
 
 
 
