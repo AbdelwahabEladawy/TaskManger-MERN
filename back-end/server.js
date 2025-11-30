@@ -1,5 +1,6 @@
-// import fs from "fs"
-// import path from "path"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 import express from "express"
 import cors from "cors"
 import dotenv from 'dotenv';
@@ -10,7 +11,8 @@ import taskRoutes from "./routes/taskRoutes.js"
 import reportRoutes from "./routes/reportRoutes.js"
 dotenv.config()
 
-
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 const allowedOrigin = 'http://localhost:5173';
@@ -20,13 +22,14 @@ app.use(
         origin: allowedOrigin,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         allowedHeaders: ["content-type", "Authorization"]
-        
+
     })
 )
 
-
-
 app.use(express.json())
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 
 
