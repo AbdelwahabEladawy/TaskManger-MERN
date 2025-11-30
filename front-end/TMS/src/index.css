@@ -2,18 +2,27 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family: 'Poppins', sans-serif;
+ --font-display: 'Poppins', sans-serif;
   --breakpoint-3xl :1920px ;
   --color-primary :#1368EC
 }
 
 @layer base {
-  html {
+   html {
     font-family: var(--font-display);
   }
+
 body{
   background-color: #fbfcfb;
 overflow-x: hidden;
 }
- 
+
 } 
+
+
+.input-box {
+  @apply w-full flex justify-between gap-3 text-sm text-black bg-slate-100/50 rounded px-4 py-3 mb-4 mt-3 border  border-slate-200 outline-none
+}
+.btn-primary {
+  @apply w-full cursor-pointer  flex justify-center gap-3 text-sm text-white bg-primary rounded px-4 py-3 mb-4 mt-3 border  border-primary outline-none
+}
