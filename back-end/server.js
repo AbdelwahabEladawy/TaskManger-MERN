@@ -7,6 +7,7 @@ import connectionDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
 import taskRoutes from "./routes/taskRoutes.js"
+import reportRoutes from "./routes/reportRoutes.js"
 dotenv.config()
 
 
@@ -37,7 +38,7 @@ connectionDB()
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/user", userRoutes)
 app.use("/api/v1/task", taskRoutes)
-// app.use("/api/v1/auth", reportRoutes)
+app.use("/api/v1/auth", reportRoutes)
 
 
 

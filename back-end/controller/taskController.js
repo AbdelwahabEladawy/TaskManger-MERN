@@ -28,8 +28,6 @@ export const createTask = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 }
-
-
 export const getTasks = async (req, res) => {
     try {
         const { status } = req.query
@@ -81,7 +79,6 @@ export const getTasks = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 }
-
 export const getTaskById = async (req, res) => {
     try {
         const task = await Task.findById(req.params.id).populate('assignedTo', 'name email profileImage')
@@ -161,7 +158,6 @@ export const updateTaskStatus = async (req, res) => {
         res.status(500).json({ message: "Server Error" })
     }
 }
-
 export const updateTaskChecklist = async (req, res) => {
     try {
         const { todoChecklist } = req.body
@@ -204,9 +200,6 @@ export const updateTaskChecklist = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message })
     }
 }
-
-
-
 export const getDashboardData = async (req, res) => {
     try {
 
