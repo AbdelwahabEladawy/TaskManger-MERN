@@ -26,3 +26,6 @@ overflow-x: hidden;
 .btn-primary {
   @apply w-full cursor-pointer  flex justify-center gap-3 text-sm text-white bg-primary rounded px-4 py-3 mb-4 mt-3 border  border-primary outline-none
 }
+.card{
+  @apply bg-white p-6 rounded-2xl shadow-md shadow-gray-100 border border-gray-200/50
+}
