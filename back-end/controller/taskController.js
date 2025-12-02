@@ -251,8 +251,8 @@ export const getDashboardData = async (req, res) => {
         ])
         const taskPrioritiesLevel = taskPriorities.reduce((acc, priority) => {
             acc[priority]
-            taskPrioritiesRaw.find((item) => item._id === priority?.count || 0)
-            return acc
+            acc[priority] = taskPrioritiesRaw.find(item => item._id === priority)?.count || 0;
+            return acc;
         }, {})
 
 

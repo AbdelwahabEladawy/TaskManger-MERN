@@ -25,13 +25,13 @@ export const SIDE_MENU_DATA = [
         id: "04",
         label: "Team Members",
         icon: LuClipboardCheck,
-        path: "/admin/user",
+        path: "/admin/users",
     },
     {
         id: "05",
         label: "logout",
         icon: LuLogOut,
-        path: "logout",
+        path: "/login",
     },
 
 ];

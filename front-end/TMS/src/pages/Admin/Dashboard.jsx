@@ -9,8 +9,12 @@ import { useState, useEffect } from 'react';
 import moment from 'moment';
 import InfoCard from '../../components/cards/InfoCard';
 import { addThousandSeparators } from '../../utils/helper';
+import { LuArrowRight } from 'react-icons/lu';
+import TaskList from '../../components/TaskList/TaskList';
+import CustomPieChart from '../../components/charts/CustomPieChart/CustomPieChart';
+import CustomBarChart from '../../components/charts/CustomBarChart/CustomBarChart';
 
-
+const COLORS = ["#8D51ff", "#00b8db", "#7bce00"];
 export default function AdminDashboard() {
     useUserAuth();
     const { user } = useContext(userContext);
@@ -19,16 +23,46 @@ export default function AdminDashboard() {
     const [pieChartData, setPieChartData] = useState()
     const [barChartData, setBarChartData] = useState()
 
+
+
+
+    const prepareChartData = (data) => {
+        console.log("Data from API:", data);
+        console.log("Priorities Object:", data?.taskPrioritiesLevel);
+        const taskDistribution = data?.taskDistribution || null
+        const taskPriorityLevel = data?.taskPrioritiesLevel || null
+
+        const taskDistributionData = [
+            { status: "pending", count: taskDistribution?.pending || 0 },
+            { status: "completed", count: taskDistribution?.completed || 0 },
+            { status: "in progress", count: taskDistribution?.inprogress || 0 }
+        ]
+        setPieChartData(taskDistributionData)
+
+        const TaskPriorityLevel = [
+            { priority: "low", count: taskPriorityLevel?.low || 0 },
+            { priority: "medium", count: taskPriorityLevel?.medium || 0 },
+            { priority: "high", count: taskPriorityLevel?.high || 0 },
+        ]
+
+        setBarChartData(TaskPriorityLevel)
+    }
+
     const getDashboardData = async () => {
         try {
             const response = await axiosInstance.get(API_PATHS.TASKS.DASHBOARD_DATA);
             if (response.data) {
                 setDashboardData(response.data);
+                prepareChartData(response.data?.charts || null)
             }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         }
     };
+
+    const onSeeMore = () => {
+        navigate("/admin/tasks")
+    }
 
     useEffect(() => {
         getDashboardData();
@@ -74,20 +108,70 @@ export default function AdminDashboard() {
 
                     />
                     <InfoCard
-                        label="Pending Tasks"
+                        label="In Progress Tasks"
                         value={addThousandSeparators(dashboardData?.charts.taskDistribution?.inprogress || 0)}
                         color="bg-cyan-500"
 
 
                     />
                     <InfoCard
-                        label="Pending Tasks"
+                        label="Completed Tasks"
                         value={addThousandSeparators(dashboardData?.charts.taskDistribution?.completed || 0)}
                         color="bg-lime-500"
 
 
                     />
 
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6  my-4 md-my-6">
+                <div>
+                    <div className="card">
+                        <div className="flex items-center justify-between">
+                            <h5 className='font-medium '> Task Distribution </h5>
+                        </div>
+                        <CustomPieChart
+                            data={pieChartData}
+                            label={"total balance"}
+                            color={COLORS}
+
+                        />
+
+
+                    </div>
+                </div>
+                <div>
+                    <div className="card">
+                        <div className="flex items-center justify-between">
+                            <h5 className='font-medium '> Task Priority Levels </h5>
+                        </div>
+                        <CustomBarChart
+                            data={barChartData}
+                            label={"total balance"}
+                            color={COLORS}
+
+                        />
+
+
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div className="md:col-span-2">
+                    <div className="card">
+                        <div className="flex items-center justify-between ">
+                            <h5>Recent Tasks</h5>
+                            <button className='card-btn' onClick={onSeeMore}>
+                                See All <LuArrowRight className='text-base' />
+                            </button>
+                        </div>
+                        <TaskList tableData={dashboardData?.recentTasks || []} />
+                    </div>
                 </div>
             </div>
         </DashboardLayout>
