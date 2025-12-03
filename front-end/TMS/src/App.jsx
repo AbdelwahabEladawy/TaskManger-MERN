@@ -10,6 +10,7 @@ import ManageUsers from './pages/Admin/ManageUsers'
 import UserDashboard from './pages/User/Dashboard'
 import MyTasks from './pages/User/MyTasks'
 import UserProvider, { userContext } from './context/userContext'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
 
@@ -42,6 +43,14 @@ function App() {
         </Router>
 
       </div >
+      <Toaster
+        toastOptions={{
+          className: '',
+          style: {
+        
+            fontSize: '16px'
+          }
+      }}    />
     </UserProvider>
 
   )
