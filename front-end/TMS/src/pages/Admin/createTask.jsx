@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import DashboardLayout from '../../components/layouts/dashboardLayout/DashboardLayout'
 import { PRIORITY_DATA } from '../../utils/data'
 import { API_PATHS } from '../../utils/apiPaths'
 import axiosInstance from '../../utils/axoisInstance'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { LuTrash2 } from 'react-icons/lu'
 import SelectDropDown from '../../components/SelectDropDown/SelectDropDown'
 import SelectUsers from '../../components/SelectUsers/SelectUsers'
 import TodoListInput from '../../components/TodoListInput/TodoListInput'
 import AddAttachmentsInput from '../../components/AddAttachmentsInput/AddAttachmentsInput'
+import moment from 'moment'
+import Modal from '../../components/modal/Modal'
+import DeleteAlert from '../../components/DeleteAlert/DeleteAlert'
 
 export default function CreateTask() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { taskId } = location.state || {}; // لو جاي عشان تعدل تاسك
+    const { taskId: taskIdFromParams } = useParams();
+    const stateTaskId = location.state?.taskId;
+    const taskId = taskIdFromParams || stateTaskId || null;
 
     const [taskData, setTaskData] = useState({
         title: "",
@@ -28,14 +33,14 @@ export default function CreateTask() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [openDeleteAlert, setOpenDeleteAlert] = useState(false);
+    const [onDeleteAlert, setOnDeleteAlert] = useState();
 
-    // دالة تحديث القيم في الـ State
+
     const handleValueChange = (key, value) => {
         setTaskData((prevData) => ({ ...prevData, [key]: value }));
     }
 
-    // دالة مسح البيانات بعد الإضافة
+
     const clearData = () => {
         setTaskData({
             title: "",
@@ -48,17 +53,17 @@ export default function CreateTask() {
         });
     }
 
-    // --- دالة الإنشاء (زي الصورة بالظبط) ---
+
     const createTask = async () => {
         setLoading(true);
         try {
-            // تحويل الـ Checklist من نصوص لـ Objects عشان الباك إند
+
             const todolist = taskData.todoChecklist?.map((item) => ({
                 text: item,
                 completed: false,
             }));
 
-            const response = await axiosInstance.post(API_PATHS.TASKS.CREATE, {
+            await axiosInstance.post(API_PATHS.TASKS.CREATE, {
                 ...taskData,
                 dueDate: new Date(taskData.dueDate).toISOString(), // تنسيق التاريخ
                 todoChecklist: todolist,
@@ -76,17 +81,17 @@ export default function CreateTask() {
         }
     };
 
-    // --- دالة التحديث (Placeholder) ---
+
     const updateTask = async () => {
-        // ممكن تضيف لوجيك التحديث هنا بنفس طريقة الإنشاء
+
         setLoading(true);
         try {
             const todolist = taskData.todoChecklist?.map((item) => {
-                // لو هو string (جديد) حوله لاوبجكت، لو هو اوبجكت (قديم) سيبه زي ما هو
+
                 return typeof item === 'string' ? { text: item, completed: false } : item
             });
 
-            await axiosInstance.put(API_PATHS.TASKS.UPDATE_TASK(taskId), {
+            await axiosInstance.put(API_PATHS.TASKS.UPDATE(taskId), {
                 ...taskData,
                 dueDate: new Date(taskData.dueDate).toISOString(),
                 todoChecklist: todolist,
@@ -100,48 +105,77 @@ export default function CreateTask() {
         }
     };
 
-    // --- زرار الحفظ (Validation Logic) ---
+    const deleteTask = async (taskId) => {
+        try {
+            await axiosInstance.delete(API_PATHS.TASKS.DELETE(taskId));
+            toast.success("Task Deleted Successfully");
+            navigate('/admin/tasks');
+        } catch (error) {
+            setError(error?.response?.data?.message || "Error deleting task");
+        }
+    }
+
     const handleSubmit = async () => {
         setError(null);
 
-        // 1. تنظيف البيانات
+
         const title = taskData.title?.trim();
         const description = taskData.description?.trim();
         const priority = taskData.priority;
         const dueDate = taskData.dueDate;
         const assignedTo = taskData.assignedTo;
-        const todoChecklist = taskData.todoChecklist;
 
-        // 2. التحقق (Validation)
+
         if (!title) return setError("Task title is required");
         if (!description) return setError("Description is required");
         if (!priority) return setError("Priority is required");
         if (!dueDate) return setError("Due date is required");
 
-        // التحقق من التاريخ (لا يمكن اختيار تاريخ قديم)
-        const today = new Date().setHours(0, 0, 0, 0);
-        const selected = new Date(dueDate).setHours(0, 0, 0, 0);
-        if (selected < today) return setError("Due date cannot be in the past");
+
+        const todayTs = new Date().setHours(0, 0, 0, 0);
+        const selectedTs = new Date(dueDate).setHours(0, 0, 0, 0);
+        if (selectedTs < todayTs) return setError("Due date cannot be in the past");
 
         if (!Array.isArray(assignedTo) || assignedTo.length === 0) {
             return setError("You must assign task to at least one user");
         }
 
-        // 3. التنفيذ
+
         if (taskId) {
             await updateTask();
         } else {
             await createTask();
         }
     };
+    const getTaskDetailsByID = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get(API_PATHS.TASKS.GET_BY_ID(taskId));
 
-    // لو بنعدل تاسك، محتاجين نجيب بياناتها الأول
-    useEffect(() => {
-        if (taskId) {
-            // هنا ممكن تعمل fetch لبيانات التاسك لو مش جاية مع الـ location
-            // setTaskData({ ...taskDetails });
+            if (response.data) {
+                const taskInfo = response.data;
+                setTaskData((prevState) => ({
+                    ...prevState,
+                    title: taskInfo.title || "",
+                    description: taskInfo.description || "",
+                    priority: taskInfo.priority || "medium",
+                    dueDate: taskInfo.dueDate
+                        ? moment(taskInfo.dueDate).format("YYYY-MM-DD")
+                        : "",
+                    assignedTo: taskInfo?.assignedTo?.map((item) => item?._id) || [],
+                    todoChecklist:
+                        taskInfo?.todoChecklist?.map((item) => item?.text) || [],
+                    attachment: taskInfo?.attachment || [],
+                }));
+            }
+        } catch (error) {
+            console.error("Error fetching task details:", error);
         }
     }, [taskId]);
+    useEffect(() => {
+        if (taskId) {
+            getTaskDetailsByID();
+        }
+    }, [taskId, getTaskDetailsByID]);
 
     return (
         <DashboardLayout activeMenu="Create Task">
@@ -153,8 +187,9 @@ export default function CreateTask() {
                         <div className="flex items-center justify-between">
                             <h2 className='text-xl font-semibold'>{taskId ? "Update Task" : "Create Task"}</h2>
                             {taskId && (
-                                <button className="text-rose-500 flex items-center gap-1.5 text-[13px] bg-rose-50 rounded px-2 py-1 border border-rose-100 hover:bg-rose-300 cursor-pointer"
-                                    onClick={() => { setOpenDeleteAlert(true) }}>
+                                <button
+                                    onClick={() => { setOnDeleteAlert(true) }}
+                                    className="text-rose-500 flex items-center gap-1.5 text-[13px] bg-rose-50 rounded px-2 py-1 border border-rose-100 hover:bg-rose-300 cursor-pointer">
                                     <LuTrash2 className='text-base' /> Delete
                                 </button>
                             )}
@@ -253,6 +288,20 @@ export default function CreateTask() {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                isOpen={onDeleteAlert}
+                onClose={() => { setOnDeleteAlert(false) }}
+                title={"Delete task"}
+
+            >
+            <DeleteAlert
+                content="Are you sure you want to delete this task?"
+                    onDelete={() => { deleteTask(taskId) }}
+                    
+                />
+                
+            </Modal>
         </DashboardLayout>
     )
 }
