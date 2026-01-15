@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const allowedOrigin = 'http://localhost:5173';
+const allowedOrigin = '*';
 
 app.use(
     cors({
@@ -54,7 +54,7 @@ app.use("/api/v1/auth", reportRoutes)
 
 
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT|| 5000
 
 app.listen(PORT, () => {
     console.log(`server is running on ${PORT}`);
