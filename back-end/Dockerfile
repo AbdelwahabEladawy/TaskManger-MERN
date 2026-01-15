@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose port (Back4App will provide it via env)
-ENV PORT=5000
+ENV PORT=8000
 EXPOSE $PORT
 
 # Start the server
