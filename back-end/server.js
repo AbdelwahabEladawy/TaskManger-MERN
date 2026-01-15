@@ -39,7 +39,9 @@ connectionDB()
 
 
 // Routes
-
+app.use("/",(req, res) => {
+    res.status(200).json({ message: "Welcome to Task Management System" })
+})
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/user", userRoutes)
 app.use("/api/v1/task", taskRoutes)
